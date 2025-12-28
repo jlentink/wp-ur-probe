@@ -3,7 +3,7 @@
  * Plugin Name: UR-Probe
  * Plugin URI: https://example.com/ur-probe
  * Description: Health check endpoint that verifies MySQL connection and WordPress status. Outputs OK or ERR.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: Your Name
  * Author URI: https://example.com
  * License: GPL v2 or later
@@ -32,9 +32,7 @@ class UR_Probe {
     private function __construct() {
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'register_settings'));
-        add_action('init', array($this, 'register_probe_endpoint'));
-        add_action('template_redirect', array($this, 'handle_probe_request'));
-        add_filter('query_vars', array($this, 'add_query_vars'));
+        add_action('init', array($this, 'handle_probe_request'), 1);
         
         register_activation_hook(__FILE__, array($this, 'activate'));
         register_deactivation_hook(__FILE__, array($this, 'deactivate'));
@@ -167,24 +165,18 @@ class UR_Probe {
         <?php
     }
     
-    public function add_query_vars($vars) {
-        $vars[] = 'ur_probe';
-        return $vars;
-    }
-    
-    public function register_probe_endpoint() {
+    public function handle_probe_request() {
         $options = get_option($this->option_name);
         $path = isset($options['probe_path']) ? $options['probe_path'] : 'ur-probe';
         
-        add_rewrite_rule(
-            '^' . preg_quote($path, '/') . '/?$',
-            'index.php?ur_probe=1',
-            'top'
-        );
-    }
-    
-    public function handle_probe_request() {
-        if (!get_query_var('ur_probe')) {
+        $request_uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+        $site_path = trim(parse_url(home_url(), PHP_URL_PATH), '/');
+        
+        if ($site_path) {
+            $request_uri = preg_replace('#^' . preg_quote($site_path, '#') . '/?#', '', $request_uri);
+        }
+        
+        if ($request_uri !== $path) {
             return;
         }
         
