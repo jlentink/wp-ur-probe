@@ -3,7 +3,7 @@
  * Plugin Name: UR-Probe
  * Plugin URI: https://example.com/ur-probe
  * Description: Health check endpoint that verifies MySQL connection and WordPress status. Outputs OK or ERR.
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: Your Name
  * Author URI: https://example.com
  * License: GPL v2 or later
