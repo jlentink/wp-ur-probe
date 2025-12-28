@@ -3,7 +3,7 @@
  * Plugin Name: UR-Probe
  * Plugin URI: https://example.com/ur-probe
  * Description: Health check endpoint that verifies MySQL connection and WordPress status. Outputs OK or ERR.
- * Version: 1.0.4
+ * Version: 1.0.5
  * Author: Your Name
  * Author URI: https://example.com
  * License: GPL v2 or later
@@ -169,14 +169,18 @@ class UR_Probe {
         $options = get_option($this->option_name);
         $path = isset($options['probe_path']) ? $options['probe_path'] : 'ur-probe';
         
-        $request_uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
-        $site_path = trim(parse_url(home_url(), PHP_URL_PATH), '/');
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+        $request_path = parse_url($request_uri, PHP_URL_PATH);
+        $request_path = trim($request_path ?? '', '/');
+        
+        $site_path = parse_url(home_url(), PHP_URL_PATH);
+        $site_path = trim($site_path ?? '', '/');
         
         if ($site_path) {
-            $request_uri = preg_replace('#^' . preg_quote($site_path, '#') . '/?#', '', $request_uri);
+            $request_path = preg_replace('#^' . preg_quote($site_path, '#') . '/?#', '', $request_path);
         }
         
-        if ($request_uri !== $path) {
+        if ($request_path !== $path) {
             return;
         }
         
